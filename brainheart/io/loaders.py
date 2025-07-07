@@ -5,9 +5,11 @@ Specific data loaders for different physiological signal types.
 from pathlib import Path
 from typing import Union, Dict, Any, Optional, List
 import numpy as np
+import mne
 
 from .base import BaseLoader, PhysiologicalData, TemporalInfo, SpatialInfo, MetaData, DataFormat
-
+from ..config.config_manager import ConfigManager
+local_config = ConfigManager()
 
 class EEGLoader(BaseLoader):
     """Loader for EEG data formats."""
@@ -121,8 +123,46 @@ class EEGLoader(BaseLoader):
     def _load_eeglab(self, path: Path, **kwargs) -> PhysiologicalData:
         """Load EEGLAB format EEG data."""
         self._log(f"Loading EEGLAB file: {path}")
-        # Would use mne.io.read_raw_eeglab
-        raise NotImplementedError("EEGLAB loader not implemented yet")
+        raw = mne.io.read_raw_eeglab(path)
+        raw.load_data()
+        data = raw.get_data()
+
+        #TODO: check to see if the montage in the file is valid
+        # if not, use .loc file.
+        # TEMP SOLUTION: this file works specifically for the EEG/ECG/EOG dataset
+        montage_fn = local_config.get_path("data_path", "./data") / "eeglab_eeg_ecg" / "Standard-10-10-Cap33_V6_BIDS.loc"
+        montage = mne.channels.read_custom_montage(montage_fn)
+
+        if montage is not None:
+            positions = montage.get_positions()
+            ch_pos = positions['ch_pos'] # can also load from raw data if it is available
+
+        temporal_info = TemporalInfo(
+            sampling_rate=raw.info['sfreq'],
+            n_samples=raw.n_times,
+            duration=raw.times[-1]
+        )
+
+        spatial_info = SpatialInfo(
+            n_channels=raw.info['nchan'],
+            channel_names=raw.info['ch_names'],
+            channel_types=raw.get_channel_types()
+            # channel_locations=raw.,
+        )
+
+        metadata = MetaData(
+            subject_id=path.stem,
+            equipment={"type": "EEG", "format": "SET"}
+        )
+
+        return PhysiologicalData(
+            data=data,
+            temporal_info=temporal_info,
+            spatial_info=spatial_info,
+            metadata=metadata,
+            data_type="eeg",
+            format_info={"original_format": "SET"}
+        )
 
 
 class ECGLoader(BaseLoader):
