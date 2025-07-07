@@ -132,6 +132,7 @@ def main():
             print("\n✓ File successfully loaded and validated!")
             print("\nData summary:")
             print(f"  Subject ID: {data.metadata.subject_id}")
+            print(f"  Number of channels: {data.spatial_info.n_channels}")
             print(f"  Channel names: {data.spatial_info.channel_names[:5]}...")
             print(f"  Channel types: {set(data.spatial_info.channel_types)}")
 

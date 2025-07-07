@@ -20,8 +20,7 @@ class DataFormat(Enum):
     EEGLAB = "set"
 
     # ECoG formats
-    #TODO: add common ECoG formats
-
+    #TODO: add common ECoG formats (some might overlap with EEG)
     # ECG formats
     WFDB = "wfdb"
     MIT = "mit"
@@ -91,7 +90,7 @@ class PhysiologicalData:
     def __post_init__(self):
         # Validate data dimensions
         if self.data.ndim not in [1, 2, 3, 4]:
-            raise ValueError("Data must be 1D, 2D, 3D, or 4D array")
+            raise ValueError(f"Data must be 1D, 2D, 3D, or 4D array instead of {self.data.ndim}D.")
         
         # Ensure consistent channel information
         if len(self.spatial_info.channel_names) == 0:

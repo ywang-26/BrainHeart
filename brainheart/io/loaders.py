@@ -25,7 +25,8 @@ class EEGLoader(BaseLoader):
         """Check if this loader can handle EEG formats."""
         format_type = self._detect_format(file_path)
         return format_type in self.supported_formats
-    
+
+
     def load(self, file_path: Union[str, Path], **kwargs) -> PhysiologicalData:
         """
         Load EEG data from supported formats.
@@ -61,6 +62,7 @@ class EEGLoader(BaseLoader):
             return self._load_eeglab(path, **kwargs)
         else:
             raise ValueError(f"Unsupported EEG format: {format_type}")
+
     
     def _load_edf(self, path: Path, **kwargs) -> PhysiologicalData:
         """Load EDF format EEG data."""
